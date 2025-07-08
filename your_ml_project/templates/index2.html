@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EV Sales Predictor</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f8f8f8;
+            text-align: center;
+            padding: 40px;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 60%;
+            margin: auto;
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: 160px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .error {
+            color: red;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .prediction {
+            font-size: 20px;
+            margin-top: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        .graph-title {
+            margin-top: 30px;
+            font-size: 18px;
+            font-weight: 500;
+        }
+        .graph-container {
+            margin-top: 20px;
+            min-height: 500px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>EV Sales Predictor</h1>
+        <p>Enter a year between 2010 and 2050 to see predicted EV sales and historical trends.</p>
+        <form method="POST" action="/predict">
+            <input type="text" name="year" placeholder="e.g., 2026" required>
+            <button type="submit">Predict Sales</button>
+        </form>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+
+        {% if prediction %}
+            <div class="prediction">
+                Predicted EV Sales in {{ year }}: {{ prediction }} <strong>million</strong>
+            </div>
+
+            <div class="graph-title">EV Sales Prediction</div>
+            <div class="graph-container">
+                {{ map_div | safe }}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,196 @@
+/* Down : Map down*/
+#mapwrapper {
+  font-family: Arial, Helvetica, sans-serif;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  justify-content: center;
+  border-radius: 2%;
+  padding: 5%;
+
+}
+#html{
+  scroll-behavior: smooth;
+}
+#donutc{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: right;
+  align-items: flex-end;
+  width: 10%;
+  height: 10%;
+}
+#aftermap{
+  width: 100vw;
+  height: 100vh;
+  background-color: #404040;
+}
+#nav {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+#nav video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1; /* Push video behind text */
+}
+#nav h1 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -150%);
+  font-size: 5rem;
+  font-family: "Noto Sans Sunuwar", sans-serif;
+  font-weight: 400;
+  color: white; /* White shows better on dark video */
+  z-index: 1;
+  text-align: center;
+}
+#totsalbtn{
+  width: 98%;
+  margin-left: 1%;
+  margin-top: 1.5%;
+  background-color: white;
+  font-size: 1.5rem ;
+  color: #404040;
+  height: 5%;
+  border-radius: 25%;
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
+
+}
+/* Down : We have the intro paragraph*/
+p{
+  background-color: #404040;
+  color: white;
+  font-family:"Noto Sans Sunuwar", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: lighter;
+  font-style: lighter;
+  font-size: 1.5rem;
+  width: 98%;
+  margin-left: 1%;
+  text-align: center; 
+}
+#maph{
+  color: black;
+  font-family: "Noto Sans Sunuwar", sans-serif;
+  font-weight: lighter;
+  font-style: lighter;
+  font-size: 1.8rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin: 0 auto; /* Center block element */
+  width: fit-content; /* Adjust width to content */
+}
+/*Down:To stop the horizontal scrolling*/
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  margin: 0 0 0 0;
+  padding: 0 0 0 0;
+}
+html{
+  font-size: 16px;
+}
+/* Down : BODY */
+#overall{
+  background-color: #404040;
+  height: 100vh;
+  width: 100%;
+  margin: 0 0 0 0;
+  padding: 0 0 0 0;
+} 
+
+#visnames {
+  font-size: 16px;
+}
+
+#mapbase {
+  width: 100%;
+  display: flex;
+  justify-content: center;       /* keep centered */
+  align-items: center;
+}
+#mapbase svg {
+  width: 50%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.2));
+  transform: scale(1.3) translateX(-15%) translateY(-2%);    /* shift slightly to the left */
+}
+#tryjstip {
+  font: 14px/16px Trebuchet MS, Helvetica, Arial, sans-serif;
+  display: none;
+  max-width: 40%;
+  padding: 5px;
+  border: 1px solid #404040;
+  color: #404040;
+  z-index: 1000;
+  float: left;
+  position: absolute;
+  background: rgba(265, 265, 265, 0.9);
+  word-break: keep-all;
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.5);
+    -moz-box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.5);
+}
+#tryjstip p {
+  margin: 0!important;
+  color: #404040!important;
+}
+#tryjstip img {
+  float: left;
+  padding: 3px;
+  max-width: 100%;
+}
+@media screen and (max-width: 320px){
+  #mapbase svg {
+    height: 270px;
+  }
+}
+@media screen and (max-width: 400px) and (min-width: 321px) {
+  #mapbase svg {
+    height: 320px;
+  }
+}
+@media screen and (max-width: 480px) and (min-width: 401px) {
+  #mapbase svg {
+    height: 400px;
+  }
+}
+@media screen and (max-width: 568px) and (min-width: 481px) {
+  #mapbase svg {
+    height: 480px;
+  }
+}
+@media screen and (max-width: 685px) and (min-width: 569px) {
+  #mapbase svg {
+    height: 550px;
+  }
+}
+@media screen and (max-width: 767px) and (min-width: 686px) {
+  #mapbase svg {
+    height: 560px;
+  }
+}
+@media screen and (min-width: 768px) {
+  #mapbase svg {
+    height: 590px;
+  }
+}

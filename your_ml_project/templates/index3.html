@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EV Sales Predictor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            padding: 30px;
+            text-align: center;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            width: 250px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #007BFF;
+            color: white;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .prediction {
+            margin-top: 30px;
+            font-size: 18px;
+        }
+
+        iframe {
+            width: 100%;
+            height: 500px;
+            border: none;
+            margin-top: 20px;
+        }
+
+        .graph {
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1>EV Sales Predictor</h1>
+
+    <form method="POST" action="/predict">
+        <input type="text" name="year" placeholder="Enter Year (e.g. 2026)">
+        <br>
+        <button type="submit">Predict</button>
+    </form>
+
+    {% if year %}
+    <div class="prediction">
+        <h2>Prediction for {{ year }}</h2>
+        <p><strong>China:</strong> {{ prediction['China'] | round(2) }} million</p>
+        <p><strong>EU27:</strong> {{ prediction['EU27'] | round(2) }} million</p>
+        <p><strong>USA:</strong> {{ prediction['USA'] | round(2) }} million</p>
+    </div>
+
+    <div class="graph">
+        <h3>China EV Sales</h3>
+        {{ graph_html['China']|safe }}
+    </div>
+
+    <div class="graph">
+        <h3>EU27 EV Sales</h3>
+        {{ graph_html['EU27']|safe }}
+    </div>
+
+    <div class="graph">
+        <h3>USA EV Sales</h3>
+        {{ graph_html['USA']|safe }}
+    </div>
+    {% endif %}
+</body>
+</html>
