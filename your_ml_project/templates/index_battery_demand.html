@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EV Stock and Battery Demand Prediction</title>
+    <!-- Include Plotly.js for interactive graphs -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        p {
+            color: #555;
+            font-size: 1.1em;
+        }
+        .form-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        label {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        select, .button {
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+        }
+        .button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .plot-container {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>EV Stock and Battery Demand Prediction</h1>
+        <p>This model predicts the global Electric Vehicle (EV) stock and the corresponding battery demand. Please select an end year for the prediction.</p>
+        
+        <!-- The form action and method are correct -->
+        <form method="POST" action="{{ url_for('battery_demand_prediction') }}">
+            <div class="form-container">
+                <label for="prediction_year">Predict up to year:</label>
+                <select name="prediction_year" id="prediction_year">
+                    <!-- This loop correctly generates the years -->
+                    {% for year in range(2030, 2061, 5) %}
+                        <!-- This line makes the dropdown remember your selection -->
+                        <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="button">Generate Prediction</button>
+            </div>
+        </form>
+
+        <!-- ========================================================= -->
+        <!--                  THIS IS THE CORRECTION                   -->
+        <!-- ========================================================= -->
+        <!-- We check for the correct variable 'plot_html' -->
+        {% if plot_html %}
+        <div class="plot-container">
+            <h2>Prediction Results</h2>
+            <!-- We render the HTML directly, using '| safe' to prevent it from being escaped -->
+            {{ plot_html | safe }}
+        </div>
+        {% endif %}
+        <!-- ========================================================= -->
+        <!--                 END OF CORRECTION                         -->
+        <!-- ========================================================= -->
+    </div>
+
+</body>
+</html>

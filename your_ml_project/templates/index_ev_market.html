@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interactive Market Analysis</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; background-color: #f4f7f9; margin-top: 20px;}
+        main { background-color: #fff; max-width: 1200px; margin: 20px auto; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .controls { margin-bottom: 20px; display: flex; justify-content: center; align-items: center; gap: 15px;}
+        .controls label { font-size: 1.2em; }
+        .controls input { padding: 8px; font-size: 1.1em; width: 100px; border: 1px solid #ccc; border-radius: 4px; }
+        .controls button { padding: 10px 20px; font-size: 1.1em; color: white; background-color: #007bff; border: none; border-radius: 4px; cursor: pointer; }
+        .controls button:hover { background-color: #0056b3; }
+        #chartDiv { min-height: 600px; } /* Add min-height to prevent collapse */
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Crude Oil Price vs EV Share Trend</h1>
+        <p>An analysis of historical trends and interactive future predictions.</p>
+
+        <div class="controls">
+            <label for="yearInput">Show Prediction Up To Year:</label>
+            <input type="number" id="yearInput" value="2040" min="2022" max="2070">
+            <!-- THIS IS THE NEW BUTTON -->
+            <button id="predictButton">Predict</button>
+        </div>
+
+        <div id="chartDiv"></div>
+    </main>
+
+    <script>
+        const yearInput = document.getElementById('yearInput');
+        const predictButton = document.getElementById('predictButton'); // Get the button
+        const chartDiv = document.getElementById('chartDiv');
+
+        function drawChart(endYear) {
+            // Show a loading message
+            chartDiv.innerHTML = '<h2>Loading chart data...</h2>';
+
+            // Fetch the data from our Flask API endpoint
+            fetch(`/get_chart_data/${endYear}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Define Plotly traces using data from the API
+                    const traceActualOil = { x: data.actual_years, y: data.actual_oil, name: 'Actual Oil Price', type: 'bar', marker: { color: 'blue' } };
+                    const tracePredictedOil = { x: data.pred_years, y: data.pred_oil, name: 'Predicted Oil Price', type: 'bar', marker: { color: 'orange' } };
+                    
+                    const traceActualEV = { x: data.actual_years, y: data.actual_ev, name: 'Actual EV Share', mode: 'lines+markers', line: { color: 'green', width: 3 }, yaxis: 'y2' };
+                    const tracePredictedEV = { x: data.pred_years, y: data.pred_ev, name: 'Predicted EV Share', mode: 'lines+markers', line: { color: 'blue', dash: 'dot', width: 3 }, yaxis: 'y2' };
+
+                    const chartData = [traceActualOil, tracePredictedOil, traceActualEV, tracePredictedEV];
+                    const layout = {
+                        title: `Predictions up to the Year ${endYear}`,
+                        xaxis: { title: 'Year' },
+                        yaxis: { title: 'Crude Oil Price (USD)' },
+                        yaxis2: { title: 'EV Share Percentage (%)', overlaying: 'y', side: 'right' },
+                        legend: { x: 0.01, y: 0.99 },
+                        bargap: 0.2
+                    };
+                    
+                    Plotly.newPlot(chartDiv, chartData, layout);
+                })
+                .catch(error => {
+                    // If something goes wrong, show an error message
+                    chartDiv.innerHTML = `<h2>Error loading chart. Please check the console or try again.</h2><p>${error}</p>`;
+                    console.error('Error fetching chart data:', error);
+                });
+        }
+
+        // --- Event Listener for the BUTTON ---
+        predictButton.addEventListener('click', () => {
+            const selectedYear = parseInt(yearInput.value);
+            if (selectedYear >= 2022 && selectedYear <= 2070) {
+                drawChart(selectedYear);
+            } else {
+                alert("Please enter a year between 2022 and 2070.");
+            }
+        });
+
+        // --- Initial Load ---
+        // Automatically click the button when the page first loads to show the initial chart
+        document.addEventListener('DOMContentLoaded', () => {
+            predictButton.click();
+        });
+    </script>
+</body>
+</html>

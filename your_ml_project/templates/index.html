@@ -171,9 +171,13 @@
      <a id="totsalbtn" href="/gp" class="button">    Click to see the Global Total sales prediction
       </a>
   </button>
-
+ <!-- CORRECTED BUTTON FOR YOUR HOMEPAGE (index.html) -->
+<button id="totsalbtn">
+ <a id="totsalbtn" href="{{ url_for('battery_demand_prediction') }}" class="button">Battery Trend</a>
+</button>
  
-
+  <button id="totsalbtn">
+    <a id="totsalbtn" href="/oil_vs_ev" class="button">Click to see the EV sales vs oil demand</a>
 
   <script>
     function goToIndex3() {
