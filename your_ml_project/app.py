@@ -1,6 +1,6 @@
 # FILE: your_ml_project/app.py (Integrated and Fully Corrected)
 
-from flask import Flask, render_template, request,jsonify
+from flask import Flask, render_template, request
 import joblib
 import pandas as pd
 import numpy as np
@@ -9,46 +9,8 @@ from sklearn.preprocessing import PolynomialFeatures
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import plotly.io as pio
-import pickle
 
 app = Flask(__name__)
-
-
-# --- 1. Load Models ---
-try:
-    with open('ev_share_model.pkl', 'rb') as f:
-        ev_share_model = pickle.load(f)
-    with open('poly_ev_transformer.pkl', 'rb') as f:
-        poly_ev_transformer = pickle.load(f)
-    with open('oil_price_model.pkl', 'rb') as f:
-        oil_price_model = pickle.load(f)
-    print("-> All models loaded successfully.")
-except FileNotFoundError as e:
-    print(f"FATAL ERROR: A model file (.pkl) was not found. Please run the corrected 'train_model_market_Sales.py' first. Details: {e}")
-    exit()
-
-# --- 2. Historical Data (from your files after merging) ---
-actual_years = [2016, 2017, 2018, 2019, 2020, 2021]
-actual_oil_price = [45, 50, 65, 57, 40, 70] # Data from your Crude_Oil_Prices...csv
-actual_ev_share = [1.1, 1.7, 2.6, 2.8, 4.2, 8.6] # Data from your EV_Share_Percentage...csv
-
-def get_predictions(end_year):
-    """Helper function to get predictions up to a specific year."""
-    if end_year < 2022:
-        return [], [], []
-        
-    years_array = np.arange(2022, end_year + 1)
-    future_years_df = pd.DataFrame(years_array, columns=['Year'])
-
-    # Predict EV Share
-    future_X_ev = poly_ev_transformer.transform(future_years_df)
-    predicted_ev_share = ev_share_model.predict(future_X_ev)
-
-    # Predict Oil Price
-    predicted_oil_price_log = oil_price_model.predict(future_years_df)
-    predicted_oil_price = np.exp(predicted_oil_price_log)
-
-    return future_years_df['Year'].tolist(), predicted_oil_price.tolist(), predicted_ev_share.tolist()
 
 # ======================================================================
 # 1. GLOBAL REGION SALES MODEL (China, EU27, USA)
@@ -126,6 +88,15 @@ df_india['EV_Sales'] = pd.to_numeric(df_india['EV_Sales'], errors='coerce') / 1_
 model_india = joblib.load('ev_sales_poly_model.pkl')
 poly_india = joblib.load('poly_transformer.pkl')
 
+# ===================================================================
+# Charging Infrastructure (using pre-trained model)
+# ===================================================================
+model_charging = joblib.load('ev_charging_poly_model.pkl')
+poly_charging = joblib.load('poly_charging_transformer.pkl')  # If you use a different transformer for charging, load it here
+
+df_charging = pd.read_csv('chargingdata - Sheet1.csv')
+df_charging.columns = df_charging.columns.str.strip()
+df_charging['CPTS'] = pd.to_numeric(df_charging['CPTS'], errors='coerce') / 1_000_000  # Convert to millions
 # ======================================================================
 # 4. ROUTES
 # ======================================================================
@@ -232,24 +203,83 @@ def predict():
     except Exception as e:
         print("ERROR:", e)
         return render_template('index2.html', error="Error creating plot")
-    
-@app.route('/ev_market')
-def EV():
-    """Renders the main HTML page."""
-    return render_template('index_ev_market.html')
 
-@app.route('/get_chart_data/<int:end_year>')
-def update_chart_data(end_year):
-    """API endpoint for JavaScript to fetch chart data."""
-    pred_years, pred_oil, pred_ev = get_predictions(end_year)
-    return jsonify({
-        'actual_years': actual_years,
-        'actual_oil': actual_oil_price,
-        'actual_ev': actual_ev_share,
-        'pred_years': pred_years,
-        'pred_oil': pred_oil,
-        'pred_ev': pred_ev
-    })
+@app.route('/charging')
+def charging_home():
+    return render_template('index_charging.html')  # updated template name
+
+@app.route('/charging/predict', methods=['POST'])
+def charging_predict():
+    try:
+        year_input = request.form.get('year')
+        if not year_input or not year_input.isdigit():
+            return render_template('index_charging.html', error="Enter a valid year.")
+
+        year = int(year_input)
+        if not 2010 <= year <= 2050:
+            return render_template('index_charging.html', error="Year must be between 2010 and 2050.")
+
+        all_years = np.arange(df_charging['YEAR'].min(), year + 1).reshape(-1, 1)
+        all_years_poly = poly_charging.transform(all_years)
+        predicted_raw = model_charging.predict(all_years_poly)
+        predicted_millions = predicted_raw / 1_000_000
+        predicted_value = round(predicted_millions[-1], 2)
+
+        fig = go.Figure()
+
+        fig.add_trace(go.Scatter(
+            x=df_charging['YEAR'],
+            y=df_charging['CPTS'],
+            mode='lines+markers',
+            name='Actual Data',
+            line=dict(color='royalblue', width=3)
+        ))
+
+        fig.add_trace(go.Scatter(
+            x=all_years.flatten(),
+            y=predicted_millions,
+            mode='lines',
+            name='Prediction',
+            line=dict(color='orange', dash='dash', width=3)
+        ))
+
+        fig.add_trace(go.Scatter(
+            x=[year],
+            y=[predicted_value],
+            mode='markers+text',
+            name='Predicted',
+            marker=dict(size=10, color='red'),
+            text=[f"{predicted_value:.2f}M"],
+            textposition='top center',
+            hovertemplate='Year: %{x}<br>Prediction: %{y:.2f}M'
+        ))
+
+        max_y = max(max(predicted_millions), df_charging['CPTS'].max())
+
+        fig.update_layout(
+            title='EV Charging Points Forecast',
+            xaxis_title='Year',
+            yaxis_title='Charging Points (Millions)',
+            plot_bgcolor='white',
+            height=600,
+            width=1100,
+            margin=dict(t=40, b=40, l=60, r=60),
+            hovermode='x unified',
+            xaxis=dict(dtick=1, tickangle=-45, gridcolor='lightgrey'),
+            yaxis=dict(range=[0, max_y * 1.1], gridcolor='lightgrey', tickformat=".2f")
+        )
+
+        graph_html = fig.to_html(full_html=False)
+
+        return render_template("index_charging.html",
+                               prediction=predicted_value,
+                               year=year,
+                               map_div=graph_html)
+
+    except Exception as e:
+        print("ERROR:", e)
+        return render_template("index_charging.html", error="Error creating plot")
+
 
 if __name__ == '__main__':
     app.run(debug=True)
