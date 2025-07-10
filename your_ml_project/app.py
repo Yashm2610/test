@@ -1,6 +1,6 @@
 # FILE: your_ml_project/app.py (Integrated and Fully Corrected)
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request,jsonify
 import joblib
 import pandas as pd
 import numpy as np
@@ -9,8 +9,46 @@ from sklearn.preprocessing import PolynomialFeatures
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import plotly.io as pio
+import pickle
 
 app = Flask(__name__)
+
+
+# --- 1. Load Models ---
+try:
+    with open('ev_share_model.pkl', 'rb') as f:
+        ev_share_model = pickle.load(f)
+    with open('poly_ev_transformer.pkl', 'rb') as f:
+        poly_ev_transformer = pickle.load(f)
+    with open('oil_price_model.pkl', 'rb') as f:
+        oil_price_model = pickle.load(f)
+    print("-> All models loaded successfully.")
+except FileNotFoundError as e:
+    print(f"FATAL ERROR: A model file (.pkl) was not found. Please run the corrected 'train_model_market_Sales.py' first. Details: {e}")
+    exit()
+
+# --- 2. Historical Data (from your files after merging) ---
+actual_years = [2016, 2017, 2018, 2019, 2020, 2021]
+actual_oil_price = [45, 50, 65, 57, 40, 70] # Data from your Crude_Oil_Prices...csv
+actual_ev_share = [1.1, 1.7, 2.6, 2.8, 4.2, 8.6] # Data from your EV_Share_Percentage...csv
+
+def get_predictions(end_year):
+    """Helper function to get predictions up to a specific year."""
+    if end_year < 2022:
+        return [], [], []
+        
+    years_array = np.arange(2022, end_year + 1)
+    future_years_df = pd.DataFrame(years_array, columns=['Year'])
+
+    # Predict EV Share
+    future_X_ev = poly_ev_transformer.transform(future_years_df)
+    predicted_ev_share = ev_share_model.predict(future_X_ev)
+
+    # Predict Oil Price
+    predicted_oil_price_log = oil_price_model.predict(future_years_df)
+    predicted_oil_price = np.exp(predicted_oil_price_log)
+
+    return future_years_df['Year'].tolist(), predicted_oil_price.tolist(), predicted_ev_share.tolist()
 
 # ======================================================================
 # 1. GLOBAL REGION SALES MODEL (China, EU27, USA)
@@ -194,6 +232,24 @@ def predict():
     except Exception as e:
         print("ERROR:", e)
         return render_template('index2.html', error="Error creating plot")
+    
+@app.route('/ev_market')
+def EV():
+    """Renders the main HTML page."""
+    return render_template('index_ev_market.html')
+
+@app.route('/get_chart_data/<int:end_year>')
+def update_chart_data(end_year):
+    """API endpoint for JavaScript to fetch chart data."""
+    pred_years, pred_oil, pred_ev = get_predictions(end_year)
+    return jsonify({
+        'actual_years': actual_years,
+        'actual_oil': actual_oil_price,
+        'actual_ev': actual_ev_share,
+        'pred_years': pred_years,
+        'pred_oil': pred_oil,
+        'pred_ev': pred_ev
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)
